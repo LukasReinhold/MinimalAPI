@@ -11,19 +11,28 @@ builder.Services.AddSwaggerGen(c =>
 {
   c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pizzas API", Description = "Pizza pizza", Version = "v1" });
 });
+
+string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+
+
 var app = builder.Build();
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-  c.SwaggerEndpoint("/swagger/v1/swagger.json", "Pizza API V1");
-});
+  app.UseSwagger();
+  app.UseSwaggerUI(c =>
+  {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Pizza API V1");
+  });
+}
+
+
 
 app.MapGet("/", () => "Hello World!");
 
 app.MapGet("/pizzas", async (PizzaDb db) => await db.Pizzas.ToListAsync());
 
-app.MapPost("/pizzas", async (PizzaDb db, Pizza pizza) =>
-{
+app.MapPost("/pizzas", async (PizzaDb db, Pizza pizza) => {
   await db.Pizzas.AddAsync(pizza);
   await db.SaveChangesAsync();
   return Results.Created($"/pizza/{pizza.Id}", pizza);
